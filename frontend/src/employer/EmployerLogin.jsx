@@ -19,10 +19,9 @@ const EmployerLogin = () => {
       const data = await res.json();
 
       if (data.success) {
-        alert("Employer login successful!");
-        // Save the full employer object including _id
+        localStorage.setItem("token", data.token); // store JWT
         localStorage.setItem("user", JSON.stringify({ ...data.employer, role: "employer" }));
-        navigate("/employer/jobs"); // redirect to jobs page
+        navigate("/employer/jobs");
       } else {
         alert(data.message || "Invalid credentials");
       }

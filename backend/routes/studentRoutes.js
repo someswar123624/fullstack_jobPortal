@@ -5,73 +5,70 @@ const Job = require("../models/Job");
 const Application = require("../models/Application");
 const multer = require("multer");
 const path = require("path");
+const generateToken = require("../utils/jwt");
+const authenticateToken = require("../middleware/auth");
 
-// ----------------- MULTER CONFIG -------------------
+// Multer config for resume upload
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // make sure this folder exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
 });
 const upload = multer({ storage });
 
-// ----------------- STUDENT ROUTES -------------------
-
-// Register
+// ----------------- REGISTER -------------------
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const existing = await Student.findOne({ email });
-    if (existing) return res.status(400).json({ success: false, message: "Email already exists" });
+    if (existing) return res.status(400).json({ success: false, message: "Email exists" });
 
-    const student = new Student({ name, email, password });
-    await student.save();
-    res.status(201).json({ success: true, student });
+    const student = await Student.create({ name, email, password });
+    const token = generateToken(student._id, "student");
+    res.status(201).json({ success: true, student, token });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
 });
 
-// Login
+// ----------------- LOGIN -------------------
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const student = await Student.findOne({ email, password });
-    if (!student) return res.status(401).json({ success: false, message: "Invalid credentials" });
-    res.json({ success: true, student });
+    const student = await Student.findOne({ email });
+    if (!student || !(await student.matchPassword(password)))
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+
+    const token = generateToken(student._id, "student");
+    res.json({ success: true, student, token });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
 });
 
-// Get student's applications
-router.get("/:studentId/applications", async (req, res) => {
+// ----------------- GET ALL JOBS -------------------
+router.get("/jobs", async (req, res) => {
   try {
-    const applications = await Application.find({ studentId: req.params.studentId })
-      .populate("jobId")
-      .populate("employerId");
-    res.json({ success: true, applications });
+    const jobs = await Job.find();
+    res.json({ success: true, jobs });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
 });
 
-// Apply for a job with form data + resume
-router.post("/:studentId/apply/:jobId", upload.single("resume"), async (req, res) => {
+// ----------------- APPLY FOR A JOB -------------------
+router.post("/apply/:jobId", authenticateToken, upload.single("resume"), async (req, res) => {
   try {
-    const { studentId, jobId } = req.params;
+    const { jobId } = req.params;
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ success: false, message: "Job not found" });
 
-    const existing = await Application.findOne({ studentId, jobId });
+    const existing = await Application.findOne({ studentId: req.user.id, jobId });
     if (existing) return res.status(400).json({ success: false, message: "Already applied" });
 
-    const application = new Application({
-      studentId,
-      jobId,
+    const application = await Application.create({
+      studentId: req.user.id,
       employerId: job.employerId,
+      jobId,
       formData: {
         name: req.body.name,
         srn: req.body.srn,
@@ -82,18 +79,27 @@ router.post("/:studentId/apply/:jobId", upload.single("resume"), async (req, res
         degreeCgpa: req.body.degreeCgpa,
         skills: req.body.skills,
         projects: req.body.projects,
-        resume: req.file ? req.file.filename : null, // save filename
+        resume: req.file ? req.file.filename : null,
       },
       status: "Pending",
     });
 
-    await application.save();
     res.json({ success: true, application });
   } catch (err) {
-    console.error(err);
     res.status(400).json({ success: false, message: err.message });
   }
 });
 
+// ----------------- GET STUDENT APPLICATIONS -------------------
+router.get("/applications", authenticateToken, async (req, res) => {
+  try {
+    const applications = await Application.find({ studentId: req.user.id })
+      .populate("jobId", "title company location salary description")
+      .populate("employerId", "companyName email");
+    res.json({ success: true, applications });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
 
 module.exports = router;

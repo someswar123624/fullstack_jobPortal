@@ -6,9 +6,7 @@ const EmployerRegister = () => {
   const [form, setForm] = useState({ companyName: "", email: "", password: "" });
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +18,7 @@ const EmployerRegister = () => {
       });
       const data = await res.json();
       if (data.success) {
-        alert("Employer registration successful! Please login.");
+        alert("Registration successful! Please login.");
         navigate("/employer/login");
       } else {
         alert(data.message || "Something went wrong");

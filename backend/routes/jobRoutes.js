@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Job = require("../models/Job");
 const Application = require("../models/Application");
+const authenticateToken = require("../middleware/auth");
 
 // Get all jobs (for students)
 router.get("/", async (req, res) => {
@@ -13,16 +14,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get all jobs of an employer
-router.get("/:employerId/jobs", async (req, res) => {
-  const jobs = await Job.find({ employerId: req.params.employerId });
-  res.json({ success: true, jobs });
-});
-
-// Get applications for a specific job
-router.get("/:jobId/applications", async (req, res) => {
-  const applications = await Application.find({ jobId: req.params.jobId }).populate("studentId");
-  res.json({ success: true, applications });
+// Get applications for a specific job (for employers)
+router.get("/applications/:jobId", authenticateToken, async (req, res) => {
+  try {
+    const applications = await Application.find({ jobId: req.params.jobId })
+      .populate("studentId", "name email");
+    res.json({ success: true, applications });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 module.exports = router;
