@@ -1,0 +1,111 @@
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #ff6a00, #ee0979);
+  padding: 10px 30px;
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  border-radius: 0 0 10px 10px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.logo:hover {
+  transform: scale(1.1);
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-btn {
+  background: #fff;
+  color: #ee0979;
+  padding: 8px 15px;
+  border-radius: 25px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background: #ee0979;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.login-btn {
+  border: 2px solid #fff;
+}
+
+.logout-btn {
+  border: none;
+}
+
+/* Main content */
+.content {
+  padding: 30px;
+  min-height: calc(100vh - 70px);
+  background: #fdf6f0;
+}
+
+/* Job cards and forms */
+.job-form, .jobs-list {
+  max-width: 800px;
+  margin: auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.job-form h2, .jobs-list h2 {
+  margin-bottom: 15px;
+  color: #ee0979;
+}
+
+.job-form input, 
+.job-form textarea, 
+.job-form button {
+  display: block;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.job-form button {
+  background: #ee0979;
+  color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.job-form button:hover {
+  background: #ff6a00;
+}
+
+.job-card {
+  border: 1px solid #eee;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  transition: transform 0.3s;
+}
+
+.job-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
