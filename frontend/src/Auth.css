@@ -154,3 +154,18 @@
 .portal-box hr {
   margin: 20px 0;
 }
+
+.google-btn {
+  background-color: #4285f4;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.google-btn:hover {
+  background-color: #357ae8;
+}

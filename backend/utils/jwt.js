@@ -1,9 +1,24 @@
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const SECRET_KEY = "mysecretkey"; // move to .env in production
 
-// Generate token
+// Path to your .env file
+const envPath = path.join(__dirname, "../.env");
+
 const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, SECRET_KEY, { expiresIn: "1h" });
+  let secret = process.env.JWT_SECRET;
+
+  // Generate a new secret if missing
+  if (!secret) {
+    secret = crypto.randomBytes(64).toString("hex");
+    fs.appendFileSync(envPath, `\nJWT_SECRET=${secret}\n`, "utf-8");
+    process.env.JWT_SECRET = secret;
+    console.log("Generated new JWT_SECRET:", secret);
+  }
+
+  // Generate JWT token
+  return jwt.sign({ id, role }, secret, { expiresIn: "1h" });
 };
 
 module.exports = generateToken;

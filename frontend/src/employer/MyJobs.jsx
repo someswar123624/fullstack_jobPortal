@@ -12,41 +12,41 @@ const MyJobs = () => {
   const token = localStorage.getItem("token");
 
   // Fetch jobs posted by the employer
-  const fetchJobs = async () => {
-    if (!user || !user._id) return;
+ const fetchJobs = async () => {
+  if (!user || !token) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // 1. Fetch employer's jobs
-      const resJobs = await fetch(`http://localhost:5000/api/employers/jobs`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const dataJobs = await resJobs.json();
-      if (!resJobs.ok || !dataJobs.success) throw new Error(dataJobs.message || "Failed to fetch jobs");
-      setJobs(dataJobs.jobs);
+    // 1. Get jobs
+    const resJobs = await fetch("http://localhost:5000/api/employers/jobs", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const dataJobs = await resJobs.json();
+    if (!resJobs.ok || !dataJobs.success) throw new Error(dataJobs.message || "Failed to fetch jobs");
+    setJobs(dataJobs.jobs);
 
-      // 2. Fetch all applications for this employer
-      const resApps = await fetch(`http://localhost:5000/api/employers/applications`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const dataApps = await resApps.json();
-      if (!resApps.ok || !dataApps.success) throw new Error(dataApps.message || "Failed to fetch applications");
+    // 2. Get applications
+    const resApps = await fetch("http://localhost:5000/api/employers/applications", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const dataApps = await resApps.json();
+    if (!resApps.ok || !dataApps.success) throw new Error(dataApps.message || "Failed to fetch applications");
 
-      // Map applications to each job
-      const appsData = {};
-      dataJobs.jobs.forEach(job => {
-        appsData[job._id] = dataApps.applications.filter(app => app.jobId._id === job._id);
-      });
-      setApplications(appsData);
+    // Map applications to jobs
+    const appsMap = {};
+    dataJobs.jobs.forEach(job => {
+      appsMap[job._id] = dataApps.applications.filter(app => app.jobId._id === job._id);
+    });
+    setApplications(appsMap);
 
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    console.error(err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => { fetchJobs(); }, []);
 

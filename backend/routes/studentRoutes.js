@@ -7,8 +7,11 @@ const multer = require("multer");
 const path = require("path");
 const generateToken = require("../utils/jwt");
 const authenticateToken = require("../middleware/auth");
+const { OAuth2Client } = require("google-auth-library");
 
-// Multer config for resume upload
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// ----------------- Multer config for resume upload -------------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
@@ -45,6 +48,29 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// ----------------- GOOGLE LOGIN -------------------
+router.post("/google-login", async (req, res) => {
+  try {
+    const { token } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name } = payload;
+
+    let student = await Student.findOne({ googleId });
+    if (!student) student = await Student.create({ name, email, googleId });
+
+    const jwtToken = generateToken(student._id, "student");
+    res.json({ success: true, token: jwtToken, student });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Google login failed" });
+  }
+});
+
 // ----------------- GET ALL JOBS -------------------
 router.get("/jobs", async (req, res) => {
   try {
@@ -62,11 +88,12 @@ router.post("/apply/:jobId", authenticateToken, upload.single("resume"), async (
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ success: false, message: "Job not found" });
 
-    const existing = await Application.findOne({ studentId: req.user.id, jobId });
+    const studentId = req.user.id;
+    const existing = await Application.findOne({ studentId, jobId });
     if (existing) return res.status(400).json({ success: false, message: "Already applied" });
 
     const application = await Application.create({
-      studentId: req.user.id,
+      studentId,
       employerId: job.employerId,
       jobId,
       formData: {
@@ -86,6 +113,7 @@ router.post("/apply/:jobId", authenticateToken, upload.single("resume"), async (
 
     res.json({ success: true, application });
   } catch (err) {
+    console.error(err);
     res.status(400).json({ success: false, message: err.message });
   }
 });
@@ -93,11 +121,14 @@ router.post("/apply/:jobId", authenticateToken, upload.single("resume"), async (
 // ----------------- GET STUDENT APPLICATIONS -------------------
 router.get("/applications", authenticateToken, async (req, res) => {
   try {
-    const applications = await Application.find({ studentId: req.user.id })
+    const studentId = req.user.id;
+    const applications = await Application.find({ studentId })
       .populate("jobId", "title company location salary description")
       .populate("employerId", "companyName email");
+
     res.json({ success: true, applications });
   } catch (err) {
+    console.error(err);
     res.status(400).json({ success: false, message: err.message });
   }
 });

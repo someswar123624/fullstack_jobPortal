@@ -12,8 +12,8 @@ import EmployerRegister from "./employer/EmployerRegister";
 import PostJob from "./employer/PostJob";
 import MyJobs from "./employer/MyJobs";
 
-// Private Route
-import PrivateRoute from "./PrivateRoute";
+// OAuth Handler
+import OAuthHandler from "./OAuthHandler";
 
 function App() {
   return (
@@ -25,7 +25,7 @@ function App() {
       <Route path="/student" element={<StudentLayout />}>
         <Route path="login" element={<StudentLogin />} />
         <Route path="register" element={<StudentRegister />} />
-        {/* No dashboard route needed */}
+        <Route path="oauth" element={<OAuthHandler role="student" />} />
       </Route>
 
       {/* Employer Routes */}
@@ -34,6 +34,7 @@ function App() {
         <Route path="register" element={<EmployerRegister />} />
         <Route path="jobs" element={<PostJob />} />
         <Route path="myjobs" element={<MyJobs />} />
+        <Route path="oauth" element={<OAuthHandler role="employer" />} />
       </Route>
     </Routes>
   );

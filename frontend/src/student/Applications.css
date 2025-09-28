@@ -1,0 +1,50 @@
+.applications-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.application-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.application-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.application-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.application-card p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.status.pending {
+  background-color: #f0ad4e;
+}
+
+.status.accepted {
+  background-color: #5cb85c;
+}
+
+.status.rejected {
+  background-color: #d9534f;
+}

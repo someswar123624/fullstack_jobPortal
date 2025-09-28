@@ -3,21 +3,23 @@ const bcrypt = require("bcryptjs");
 
 const studentSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
-}, { timestamps: true });
+  email: { type: String, required: true, unique: true },
+  password: { type: String }, // optional for Google users
+  googleId: { type: String, unique: true, sparse: true }, // sparse allows null
+});
 
-// Hash password before saving
-studentSchema.pre("save", async function(next) {
-  if (!this.isModified("password")) return next();
+// Hash password only if it exists
+studentSchema.pre("save", async function (next) {
+  if (!this.isModified("password") || !this.password) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-// Method to compare password
-studentSchema.methods.matchPassword = async function(password) {
-  return await bcrypt.compare(password, this.password);
+// Match password
+studentSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false; // Google users have no password
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 module.exports = mongoose.model("Student", studentSchema);
